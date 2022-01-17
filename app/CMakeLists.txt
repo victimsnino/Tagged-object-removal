@@ -30,6 +30,8 @@ find_package(${QT_TARGET} COMPONENTS Widgets REQUIRED)
 set(OpenCV_DIR ./opencv)
 find_package(OpenCV REQUIRED)
 
+# Windows Only
+file(GLOB OPENCV_FILES_TO_COPY "${_OpenCV_LIB_PATH}/opencv_world*.dll")
 # ================ CUSTOM ==================
 
 # Usage:
