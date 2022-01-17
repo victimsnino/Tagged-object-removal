@@ -1,0 +1,10 @@
+[submodule "app/submodules/RxCpp"]
+	path = app/submodules/RxCpp
+	url = https://github.com/ReactiveX/RxCpp.git
+[submodule "app/submodules/rxqt"]
+	path = app/submodules/rxqt
+	url = https://github.com/tetsurom/rxqt.git
+[submodule "app/submodules/pybind11"]
+	path = app/submodules/pybind11
+	url = https://github.com/pybind/pybind11.git
+	branch = stable
