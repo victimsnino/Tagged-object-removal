@@ -5,5 +5,5 @@ add_library(${TARGET} STATIC
     Controller.h
 )
 
-target_link_libraries(${TARGET} PRIVATE RxQtLoop ViewInterface)
+target_link_libraries(${TARGET} PRIVATE RxQtLoop ViewInterface NetworkExecutor)
 target_include_directories(${TARGET} PUBLIC .)

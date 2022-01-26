@@ -1,9 +1,13 @@
 set(TARGET NetworkExecutor)
 
-add_library(${TARGET})
+add_library(${TARGET} 
+    STATIC 
+        NetworkExecutor.cpp
+        NetworkExecutor.h
+)
 
-target_include_directories(${TARGET} PRIVATE ${OpenCV_INCLUDE_DIRS} )
-target_link_libraries( ${TARGET} PRIVATE ${OpenCV_LIBS} )
+target_include_directories(${TARGET} PRIVATE ${OpenCV_INCLUDE_DIRS} PUBLIC .)
+target_link_libraries( ${TARGET} PRIVATE ${OpenCV_LIBS} pybind11::embed)
 
 add_custom_command(TARGET ${TARGET} 
     POST_BUILD
