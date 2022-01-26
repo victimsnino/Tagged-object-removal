@@ -32,6 +32,9 @@ find_package(OpenCV REQUIRED)
 
 # Windows Only
 file(GLOB OPENCV_FILES_TO_COPY "${_OpenCV_LIB_PATH}/opencv_world*.dll")
+
+# =========== CONFIGURE PYTHON ============
+set(PYTHON_FILES_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/python)
 # ================ CUSTOM ==================
 
 # Usage:

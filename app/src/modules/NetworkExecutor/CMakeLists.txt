@@ -15,4 +15,10 @@ add_custom_command(TARGET ${TARGET}
     ${OPENCV_FILES_TO_COPY}
     $<TARGET_FILE_DIR:${TARGET}>)
 
+add_custom_command(TARGET ${TARGET} 
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory  
+    ${PYTHON_FILES_FOLDER}
+    $<TARGET_FILE_DIR:${TARGET}>/python)
+
 set_target_properties(${TARGET} PROPERTIES FOLDER modules)

@@ -16,7 +16,7 @@ Controller::Controller(ViewInterface& view)
         .observe_on(rxcpp::observe_on_new_thread())
         .tap([](const auto&)
         {
-            std::this_thread::sleep_for(std::chrono::seconds{3});
+            //std::this_thread::sleep_for(std::chrono::seconds{3});
         }).map([network_executor](const auto&)
         {
             return network_executor->GetResult() +
