@@ -1,9 +1,12 @@
 #pragma once
 
-#include <rxqt_run_loop.hpp>
+#include <rxcpp/operators/rx-observe_on.hpp>
 
-inline rxqt::run_loop& GetUIRunLoop()
+
+namespace rxqt
 {
-    static rxqt::run_loop s_run_loop{};
-    return s_run_loop;
+class run_loop;
 }
+
+void SetUIRunLoop(rxqt::run_loop& run_loop);
+rxcpp::observe_on_one_worker ObserveOnUIRunLoop();
