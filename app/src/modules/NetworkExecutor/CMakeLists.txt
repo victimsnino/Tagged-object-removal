@@ -10,3 +10,5 @@ add_custom_command(TARGET ${TARGET}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${OPENCV_FILES_TO_COPY}
     $<TARGET_FILE_DIR:${TARGET}>)
+
+set_target_properties(${TARGET} PROPERTIES FOLDER modules)
