@@ -3,6 +3,7 @@
 from PIL import Image
 import numpy as np
 import matplotlib as mplt
+from matplotlib import pyplot as plt
 
 def run_visualization(url, MODEL):
   """Inferences DeepLab model and visualizes result."""
@@ -13,17 +14,24 @@ def run_visualization(url, MODEL):
     return
 
   print('running deeplab on image %s...' % url)
+ 
   resized_im, seg_map = MODEL.run(original_im)
-  print(seg_map.shape)
 
-  # vis_segmentation(resized_im, seg_map)
-  mplt.image.imsave('./images/segmentation.png', seg_map.astype(np.uint8))
   return seg_map
 
-def transform_image(seg_img, LABEL_NAMES, selected_tag):
+def transform_image(seg_img, LABEL_NAMES, selected_tag, img_url):
   tag_idx = list(LABEL_NAMES).index(selected_tag)
   if(tag_idx is not None):
     transform_img = (seg_img == tag_idx).astype(np.uint8)*255
-    img_data = Image.fromarray(transform_img)
-    img_data.save('./images/transform.png')
 
+    mask_image = Image.fromarray(transform_img)
+    mask_image = mask_image.resize((1499, 1083))
+    image_name = img_url.split("/")[-1].split(".")[0]
+    mask_image.save("./images/segmented/" + image_name + "-segmentation.png")
+    
+    img = Image.open(img_url)
+    plt.imshow(img)
+    plt.imshow(mask_image, alpha=0.7)
+    plt.axis('off')
+    plt.savefig("./images/segmented/" + image_name + "-overlay.png")
+    

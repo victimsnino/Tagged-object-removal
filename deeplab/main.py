@@ -9,6 +9,7 @@ from utils import run_visualization, transform_image
 import numpy as np
 
 # To activate env in VS Code .\.venv\Scripts\activate
+#To run python main.py
 
 LABEL_NAMES = np.asarray([
     'background', 'aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus',
@@ -19,7 +20,7 @@ LABEL_NAMES = np.asarray([
 FULL_LABEL_MAP = np.arange(len(LABEL_NAMES)).reshape(len(LABEL_NAMES), 1)
 FULL_COLOR_MAP = label_to_color_image(FULL_LABEL_MAP)
 
-MODEL_NAME = 'mobilenetv2_coco_voctrainaug'
+MODEL_NAME = 'xception_coco_voctrainaug'
 _DOWNLOAD_URL_PREFIX = 'http://download.tensorflow.org/models/'
 _MODEL_URLS = {
     'mobilenetv2_coco_voctrainaug':
@@ -46,9 +47,10 @@ MODEL = DeepLabModel(download_path)
 print('model loaded successfully!')
 
 
-IMAGE_URL = './images/8399166846_f6fb4e4b8e_k.png'
+# IMAGE_URL = './images/8399166846_f6fb4e4b8e_k.png'
+IMAGE_URL = "./images/clarisse-meyer-fegQqTTEolA.png"
 
 SEG_IMG = run_visualization(IMAGE_URL, MODEL)
 
 TAG_TO_DELETE = "person"
-transform_image(SEG_IMG, LABEL_NAMES, TAG_TO_DELETE)
+transform_image(SEG_IMG, LABEL_NAMES, TAG_TO_DELETE, IMAGE_URL)
