@@ -12,21 +12,34 @@ class NetworkExecutor final : public INetworkExecutor
 public:
     NetworkExecutor();
 
+    ~NetworkExecutor() override
+    {
+        py::gil_scoped_acquire gil{};
+        m_state.reset();
+    }
+
     std::string GetResult() override;
+
 private:
     py::module& GetModule();
 private:
-    py::scoped_interpreter m_guard{};
-    std::once_flag         m_flag{};
-    py::gil_scoped_release m_release{}; // immediately release gil to provide ability to load module from another thread
-    py::module             m_module{};
+    struct PythonState
+    {
+        py::scoped_interpreter guard{};
+        py::module             module{};
+        py::gil_scoped_release release{};
+    };
+
+    std::optional<PythonState> m_state{PythonState{}};
+    std::once_flag             m_flag{};
+    std::thread                m_loading{};
 };
 
 
 NetworkExecutor::NetworkExecutor()
-{
-    std::thread(&NetworkExecutor::GetModule, this).detach();
-}
+: m_loading{&NetworkExecutor::GetModule, this}
+{}
+
 
 std::string NetworkExecutor::GetResult()
 {
@@ -42,10 +55,13 @@ py::module& NetworkExecutor::GetModule()
                    [&]()
                    {
                        pybind11::gil_scoped_acquire acquire{};
-                       m_module = py::module::import("python_module");
+                       py::module                   sys = py::module::import("sys");
+                       sys.attr("path").
+                           attr("append")("C:/Coding/Study/Tagged-object-removal/app/_build/bin/Release/python");
+                       m_state->module = py::module::import("python_module");
                        std::cout << "Python loading done" << std::endl;
                    });
-    return m_module;
+    return m_state->module;
 }
 
 std::shared_ptr<INetworkExecutor> INetworkExecutor::Create()

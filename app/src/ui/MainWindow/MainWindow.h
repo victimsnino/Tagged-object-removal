@@ -25,5 +25,10 @@ protected:
     void resizeEvent(QResizeEvent* event) override;
 
 private:
-    std::unique_ptr<Ui::MainWindow> ui;
+    void updateImages() const;
+
+private:
+    std::unique_ptr<Ui::MainWindow> m_ui;
+    QPixmap                         m_pixmap_before{};
 };
+
