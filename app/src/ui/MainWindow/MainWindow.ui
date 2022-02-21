@@ -224,7 +224,7 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
-            <widget class="QPushButton" name="pushButton">
+            <widget class="QPushButton" name="save_result">
              <property name="text">
               <string>SaveResult</string>
              </property>

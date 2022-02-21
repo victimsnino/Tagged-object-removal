@@ -5,12 +5,13 @@
 
 #include <QFileDialog>
 #include <QStandardPaths>
+#include <QMessageBox>
 #include <QImageReader>
 #include <QImageWriter>
 
 static void InitializeImageFileDialog(QFileDialog& dialog, QFileDialog::AcceptMode acceptMode)
 {
-    dialog.setDirectory(QDir::currentPath());
+    //dialog.setDirectory(QDir::currentPath());
 
     QStringList          mimeTypeFilters;
     const QByteArrayList supportedMimeTypes = acceptMode == QFileDialog::AcceptOpen ?
@@ -64,6 +65,7 @@ MainWindow::MainWindow(QWidget* parent)
     , m_ui(std::make_unique<Ui::MainWindow>())
 {
     m_ui->setupUi(this);
+    m_ui->save_result->setEnabled(false);
 
     m_on_image_observable = rxqt::from_signal(m_ui->load_image, &QPushButton::clicked)
                             .map([&](const auto&)
@@ -91,6 +93,8 @@ MainWindow::MainWindow(QWidget* parent)
 
     m_on_image_observable.subscribe([&](const QImage& img)
     {
+        m_ui->save_result->setEnabled(true);
+
         m_pixmap_before = QPixmap::fromImage(img);
 
         updateImages();
@@ -100,6 +104,31 @@ MainWindow::MainWindow(QWidget* parent)
     {
         updateImages();
     });
+
+    rxqt::from_signal(m_ui->save_result, &QPushButton::clicked)
+            .map([&](const auto&)
+            {
+                QFileDialog dialog(this, tr("Save As File"));
+
+                InitializeImageFileDialog(dialog, QFileDialog::AcceptSave);
+
+                if (dialog.exec() != QDialog::Accepted)
+                    return tr("");
+                return dialog.selectedFiles().constFirst();
+            })
+            .filter([](const QString& path) { return !path.isEmpty(); })
+            .tap([&](const QString&   path)
+            {
+                QImageWriter writer{path};
+                writer.write(m_pixmap_after.toImage());
+            })
+            .subscribe([&](const QString& path)
+            {
+                QMessageBox::information(this,
+                                         QGuiApplication::applicationDisplayName(),
+                                         tr("Image successfully saved to %1")
+                                         .arg(QDir::toNativeSeparators(path)));
+            });
 }
 
 MainWindow::~MainWindow()
