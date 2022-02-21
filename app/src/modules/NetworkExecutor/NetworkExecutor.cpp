@@ -140,7 +140,7 @@ cv::Mat NetworkExecutor::ProcessImage(const cv::Mat& original_img)
     //auto im = img.unchecked<3>();
     auto rows = img.shape(0);
     auto cols = img.shape(1);
-    auto type = CV_8UC3;
+    auto type = CV_MAKETYPE(CV_8U,img.shape(2));
 
     return cv::Mat(rows, cols, type, (unsigned char*)img.data());
 }

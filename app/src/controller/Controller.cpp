@@ -7,39 +7,83 @@
 
 #include <QImage>
 
-static cv::Mat QImageToMat(const QImage& original)
+
+static QImage MatToQimageRef(cv::Mat& mat, QImage::Format format)
 {
-    QImage  image = original.convertToFormat(QImage::Format_RGB888);
-    cv::Mat view(image.height(), image.width(), CV_8UC3, image.bits(), image.bytesPerLine());
-    cvtColor(view, view, cv::COLOR_RGB2BGR);
-    return view.clone();
+    return QImage(mat.data,
+                  mat.cols,
+                  mat.rows,
+                  mat.step,
+                  format);
 }
 
-static QImage MatToQImage(cv::Mat image)
+static QImage MatToQimageRef(cv::Mat& mat)
 {
-    switch(image.type())
+    if (mat.empty())
+        return {};
+    switch (mat.type())
     {
-        case CV_8UC4:
-        {
-            return QImage(image.data, image.cols, image.rows, image.step[0], QImage::Format_ARGB32);
-        }
-        case CV_8UC3:
-        {
-            cvtColor(image, image, cv::COLOR_BGR2BGRA); //COLOR_BGR2RGB doesn't behave so use RGBA
-            return QImage(image.data, image.cols, image.rows, image.step[0], QImage::Format_ARGB32);
-        }
-        case CV_8UC1:
-        {
-            cvtColor(image, image, cv::COLOR_GRAY2BGRA);
-            return QImage(image.data, image.cols, image.rows, image.step[0], QImage::Format_ARGB32);
-        }
-        default:
-        {
-            throw std::invalid_argument("Image format not supported");
-        }
+    case CV_8UC3:
+        return MatToQimageRef(mat, QImage::Format_RGB888).rgbSwapped();
+    case CV_8U:
+        return MatToQimageRef(mat, QImage::Format_Indexed8);
+    case CV_8UC4:
+        return MatToQimageRef(mat, QImage::Format_ARGB32);
+    default:
+        return {};
     }
 }
 
+static cv::Mat QImageToMatRef(QImage& img, int format)
+{
+    return cv::Mat(img.height(),
+                   img.width(),
+                   format,
+                   img.bits(),
+                   img.bytesPerLine());
+}
+
+static cv::Mat QImageToMatRef(QImage& img)
+{
+    if (img.isNull())
+        return cv::Mat();
+
+    switch (img.format())
+    {
+    case QImage::Format_RGB888:
+    {
+        auto result = QImageToMatRef(img, CV_8UC3);
+        cvtColor(result, result, cv::COLOR_RGB2BGR);
+        return result;
+    }
+    case QImage::Format_Indexed8:
+    {
+        return QImageToMatRef(img, CV_8U);
+    }
+    case QImage::Format_RGB32:
+    case QImage::Format_ARGB32:
+    case QImage::Format_ARGB32_Premultiplied:
+    {
+        auto res = QImageToMatRef(img, CV_8UC4);
+        cvtColor(res, res, cv::COLOR_BGRA2BGR);
+        return res;
+    }
+    default:
+        break;
+    }
+
+    return {};
+}
+
+static QImage MatToQImageCopy(cv::Mat mat)
+{
+    return MatToQimageRef(mat).copy();
+}
+
+static cv::Mat QImageToMatCopy(QImage img)
+{
+    return QImageToMatRef(img).clone();
+}
 
 Controller::Controller(ViewInterface& view)
 {
@@ -47,9 +91,9 @@ Controller::Controller(ViewInterface& view)
 
     view.GetOnImageObservable()
         .observe_on(rxcpp::observe_on_new_thread())
-        .map(&QImageToMat)
+        .map(&QImageToMatCopy)
         .map([network_executor](const cv::Mat& mat) { return network_executor->ProcessImage(mat); })
-        .map(&MatToQImage)
+        .map(&MatToQImageCopy)
         .observe_on(ObserveOnUIRunLoop())
         .subscribe(view.GetOnProcessedImageObserver());
 }
