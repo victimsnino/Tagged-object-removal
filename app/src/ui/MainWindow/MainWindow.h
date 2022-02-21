@@ -18,8 +18,8 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
-    rxcpp::observable<bool>  GetOnClickObservable() const override;
-    rxcpp::observer<std::string> GetOnTextObserver() const override;
+    rxcpp::observable<QImage> GetOnImageObservable() const override;
+    rxcpp::observer<QImage>   GetOnProcessedImageObserver() override;
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
@@ -29,6 +29,9 @@ private:
 
 private:
     std::unique_ptr<Ui::MainWindow> m_ui;
-    QPixmap                         m_pixmap_before{};
+    rxcpp::observable<QImage>       m_on_image_observable;
+
+    QPixmap m_pixmap_before{};
+    QPixmap m_pixmap_after{};
 };
 
