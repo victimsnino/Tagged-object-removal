@@ -5,8 +5,9 @@ import tarfile
 import tempfile
 from six.moves import urllib
 import tensorflow as tf
-from utils import run_visualization, transform_image
+from utils import run_visualization, transform_image, load_test, test_transform_image
 import numpy as np
+import time
 
 # To activate env in VS Code .\.venv\Scripts\activate
 #To run python main.py
@@ -46,11 +47,23 @@ print('download completed! loading DeepLab model...')
 MODEL = DeepLabModel(download_path)
 print('model loaded successfully!')
 
+def run_experiments():
+    URL ="./images/test-dataset/"
+    test_data = load_test()
+    start = time.time()
+    for file_ in test_data.keys():
+        SEG_IMG, resized_im = run_visualization(URL + file_, MODEL)
+        tags = test_data[file_]
+        test_transform_image(SEG_IMG, LABEL_NAMES, tags, URL + file_, resized_im)
+    end = time.time()
+    print("Time", end-start)
+
+run_experiments()
 
 # IMAGE_URL = './images/8399166846_f6fb4e4b8e_k.png'
-IMAGE_URL = "./images/clarisse-meyer-fegQqTTEolA.png"
 
-SEG_IMG = run_visualization(IMAGE_URL, MODEL)
+# SEG_IMG, resized_im = run_visualization(IMAGE_URL, MODEL)
 
-TAG_TO_DELETE = "person"
-transform_image(SEG_IMG, LABEL_NAMES, TAG_TO_DELETE, IMAGE_URL)
+# TAG_TO_DELETE = "person"
+# transform_image(SEG_IMG, LABEL_NAMES, TAG_TO_DELETE, IMAGE_URL, resized_im)
+# load_test()
