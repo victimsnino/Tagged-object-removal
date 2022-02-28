@@ -6,11 +6,18 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'lama'))
 
 from predict import *
 
+import gc
+gc.collect()
+torch.cuda.empty_cache()
+
+os.environ['PYTORCH_NO_CUDA_MEMORY_CACHING'] = '1'
+
+
 class Predictor:
     def create_network(self, weights_folder):
         # register_debug_signal_handlers()  # kill -10 <pid> will result in traceback dumped into log
 
-        device = torch.device('cpu')
+        device = torch.device('cuda')
 
         train_config_path = os.path.join(weights_folder, 'config.yaml')
         with open(train_config_path, 'r') as f:
@@ -64,7 +71,7 @@ class Predictor:
             batch = move_to_device(default_collate([{
                 'image' : picture,
                 'mask' : mask
-            }]), 'cpu')
+            }]), 'cuda')
 
             print(batch['mask'].shape)
             batch['mask'] = (batch['mask'] > 0) * 1
