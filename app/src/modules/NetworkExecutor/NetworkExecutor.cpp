@@ -142,7 +142,7 @@ cv::Mat NetworkExecutor::ProcessImage(const cv::Mat& original_img)
     auto cols = img.shape(1);
     auto type = CV_MAKETYPE(CV_8U,img.shape(2));
 
-    return cv::Mat(rows, cols, type, (unsigned char*)img.data());
+    return cv::Mat(rows, cols, type, (unsigned char*)img.data()).clone();
 }
 
 py::module& NetworkExecutor::GetModule()
