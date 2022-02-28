@@ -8,3 +8,9 @@
 	path = app/submodules/pybind11
 	url = https://github.com/pybind/pybind11.git
 	branch = stable
+[submodule "lama/lama"]
+	path = lama/lama
+	url = https://github.com/saic-mdal/lama.git
+[submodule "lama/detectron2"]
+	path = lama/detectron2
+	url = https://github.com/facebookresearch/detectron2.git
