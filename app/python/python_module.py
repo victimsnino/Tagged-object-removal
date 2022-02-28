@@ -18,8 +18,9 @@ def send_image_to_lama(img, mask):
     return cv2.imdecode(img_bytes, cv2.IMREAD_COLOR)
 
 
-def process_image(image):
-
+def process_image(list_of_tags, image):
+    print(list_of_tags)
+    
     # temp solution to generate mask
     mask = 0 * np.ones(shape=image.shape[:2], dtype=np.uint8)
     cv2.rectangle(mask, pt1=(int(image.shape[0]),int(image.shape[1]/8)), 
@@ -31,6 +32,9 @@ def process_image(image):
     return send_image_to_lama(image, mask)
 
 
+def get_list_of_tags():
+    return ["some_tag", "some_other_tag"]
+    
 # if __name__ == "__main__":
 #     img = cv2.imread("C:/Coding/Study/Tagged-object-removal/lama/000068.png")
 #     cv2.imwrite("temp.jpg",process_image(img))

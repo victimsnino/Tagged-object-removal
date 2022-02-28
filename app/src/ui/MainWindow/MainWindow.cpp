@@ -4,10 +4,11 @@
 #include <rxqt.hpp>
 
 #include <QFileDialog>
-#include <QStandardPaths>
-#include <QMessageBox>
+#include <QCheckBox>
 #include <QImageReader>
 #include <QImageWriter>
+#include <QMessageBox>
+#include <QScrollArea>
 
 static void InitializeImageFileDialog(QFileDialog& dialog, QFileDialog::AcceptMode acceptMode)
 {
@@ -66,39 +67,57 @@ MainWindow::MainWindow(QWidget* parent)
 {
     m_ui->setupUi(this);
     m_ui->save_result->setEnabled(false);
+    m_ui->process_image->setEnabled(false);
+    m_ui->save_result->setToolTip("Save processed image to disk. Button activated after processed image is ready");
+    m_ui->process_image->setToolTip("Process loaded image with selected above tags. Button activated after loading of image");
 
     m_on_image_observable = rxqt::from_signal(m_ui->load_image, &QPushButton::clicked)
-                            .map([&](const auto&)
-                            {
-                                QFileDialog dialog(this, tr("Open File"));
+                           .map([&](const auto&)
+                           {
+                               QFileDialog dialog(this, tr("Open File"));
 
-                                InitializeImageFileDialog(dialog, QFileDialog::AcceptOpen);
+                               InitializeImageFileDialog(dialog, QFileDialog::AcceptOpen);
 
-                                if (dialog.exec() != QDialog::Accepted)
-                                    return tr("");
-                                return dialog.selectedFiles().constFirst();
-                            })
-                            .filter([](const QString& path) { return !path.isEmpty(); })
-                            .map([](const QString&    path)
-                            {
-                                QImageReader reader(path);
-                                reader.setAutoTransform(true);
-                                return reader.read();
-                            })
-                            .filter([](const QImage& img)
-                            {
-                                return !img.isNull();
-                            })
-                            .publish().ref_count();
+                               if (dialog.exec() != QDialog::Accepted)
+                                   return tr("");
+                               return dialog.selectedFiles().constFirst();
+                           })
+                           .filter([](const QString& path) { return !path.isEmpty(); })
+                           .map([](const QString&    path)
+                           {
+                               QImageReader reader(path);
+                               reader.setAutoTransform(true);
+                               return reader.read();
+                           })
+                           .filter([](const QImage& img)
+                           {
+                               return !img.isNull();
+                           })
+                           .publish().ref_count();
 
     m_on_image_observable.subscribe([&](const QImage& img)
     {
-        m_ui->save_result->setEnabled(true);
+        m_ui->process_image->setEnabled(true);
+        m_ui->save_result->setEnabled(false);
 
         m_pixmap_before = QPixmap::fromImage(img);
+        m_pixmap_after  = QPixmap();
 
         updateImages();
     });
+
+    m_on_process_tags = rxqt::from_signal(m_ui->process_image, &QPushButton::clicked)
+            .map([&](const auto&)
+            {
+                std::vector<std::string> enabled_tags{};
+                for (const auto& c : m_ui->tags_scroll_content->findChildren<QCheckBox*>(QString(),
+                                                                                         Qt::FindDirectChildrenOnly))
+                {
+                    if (c->isChecked())
+                        enabled_tags.push_back(c->text().toStdString());
+                }
+                return enabled_tags;
+            });
 
     rxqt::from_event(m_ui->Center, QEvent::Resize).subscribe([&](const auto&)
     {
@@ -141,13 +160,34 @@ rxcpp::observable<QImage> MainWindow::GetOnImageObservable() const
     return m_on_image_observable;
 }
 
+rxcpp::observable<std::vector<std::string>> MainWindow::GetOnProcessTagsObservable() const
+{
+    return m_on_process_tags;
+}
+
 rxcpp::observer<QImage> MainWindow::GetOnProcessedImageObserver()
 {
     return rxcpp::make_observer_dynamic<QImage>([&](const QImage& img)
     {
+        m_ui->save_result->setEnabled(true);
+
         m_pixmap_after = QPixmap::fromImage(img);
 
         updateImages();
+    });
+}
+
+rxcpp::observer<std::vector<std::string>> MainWindow::GetOnTagsListObserver()
+{
+    return rxcpp::make_observer_dynamic<std::vector<std::string>>([&](const std::vector<std::string>& tags)
+    {
+        QVBoxLayout* vbox = new QVBoxLayout();
+
+        for (const auto& tag : tags)
+            vbox->addWidget(new QCheckBox(QString::fromStdString(tag)));
+
+        vbox->addStretch(1);
+        m_ui->tags_scroll_content->setLayout(vbox);
     });
 }
 

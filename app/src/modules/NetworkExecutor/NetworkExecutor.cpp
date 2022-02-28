@@ -3,6 +3,7 @@
 #include <opencv2/imgproc.hpp>
 #include <pybind11/embed.h>
 #include <pybind11/numpy.h>
+#include <pybind11/stl.h>
 
 #include <condition_variable>
 #include <filesystem>
@@ -107,7 +108,8 @@ public:
         m_state.reset();
     }
 
-    cv::Mat ProcessImage(const cv::Mat& img) override;
+    cv::Mat                  ProcessImage(const std::tuple<std::vector<std::string>, cv::Mat>& tags_with_img) override;
+    std::vector<std::string> GetListOfTags() override;
 
 private:
     py::module& GetModule();
@@ -130,12 +132,12 @@ NetworkExecutor::NetworkExecutor()
     , m_loading{&NetworkExecutor::GetModule, this} {}
 
 
-cv::Mat NetworkExecutor::ProcessImage(const cv::Mat& original_img)
+cv::Mat NetworkExecutor::ProcessImage(const std::tuple<std::vector<std::string>, cv::Mat>& tags_with_img)
 {
     auto& module = GetModule();
 
     pybind11::gil_scoped_acquire acquire{};
-    auto img = module.attr("process_image")(mat_to_nparray(original_img)).cast<py::array_t<uint8_t>>();
+    auto img = module.attr("process_image")(py::cast(std::get<0>(tags_with_img)), mat_to_nparray(std::get<1>(tags_with_img))).cast<py::array_t<uint8_t>>();
 
     //auto im = img.unchecked<3>();
     auto rows = img.shape(0);
@@ -143,6 +145,22 @@ cv::Mat NetworkExecutor::ProcessImage(const cv::Mat& original_img)
     auto type = CV_MAKETYPE(CV_8U,img.shape(2));
 
     return cv::Mat(rows, cols, type, (unsigned char*)img.data()).clone();
+}
+
+std::vector<std::string> NetworkExecutor::GetListOfTags()
+{
+    auto& module = GetModule();
+
+    pybind11::gil_scoped_acquire acquire{};
+    auto list_of_tags = module.attr("get_list_of_tags")().cast<py::list>();
+
+    std::vector<std::string> res{};
+    std::transform(list_of_tags.begin(), list_of_tags.end(), std::back_inserter(res), [](const py::handle& r)
+    {
+        return r.cast<py::str>();
+    });
+
+    return res;
 }
 
 py::module& NetworkExecutor::GetModule()

@@ -89,11 +89,20 @@ Controller::Controller(ViewInterface& view)
 {
     auto network_executor = INetworkExecutor::Create();
 
-    view.GetOnImageObservable()
-        .observe_on(rxcpp::observe_on_new_thread())
-        .map(&QImageToMatCopy)
-        .map([network_executor](const cv::Mat& mat) { return network_executor->ProcessImage(mat); })
-        .map(&MatToQImageCopy)
-        .observe_on(ObserveOnUIRunLoop())
-        .subscribe(view.GetOnProcessedImageObserver());
+    view.GetOnProcessTagsObservable().observe_on(rxcpp::observe_on_new_thread()).
+         with_latest_from(view.GetOnImageObservable()
+                              .observe_on(rxcpp::observe_on_new_thread())
+                              .map(&QImageToMatCopy))
+         .map([network_executor](const std::tuple<std::vector<std::string>, cv::Mat>& tags_with_img) { return network_executor->ProcessImage(tags_with_img); })
+         .map(&MatToQImageCopy)
+         .observe_on(ObserveOnUIRunLoop())
+         .subscribe(view.GetOnProcessedImageObserver());
+
+    rxcpp::observable<>::defer([network_executor]()
+    {
+        return rxcpp::observable<>::just(network_executor->GetListOfTags());
+    })
+    .subscribe_on(rxcpp::observe_on_new_thread())
+    .observe_on(ObserveOnUIRunLoop())
+    .subscribe(view.GetOnTagsListObserver());
 }
