@@ -1,2 +1,3 @@
 _build/*
 opencv/*
+python/deeplab_model/model.gz
