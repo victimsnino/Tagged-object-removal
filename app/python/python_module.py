@@ -86,7 +86,9 @@ def process_image(list_of_tags, image):
 # process_image(["person", "dog"], img)
 
 def get_list_of_tags():
-    return ["boat", "bus", "car", "cat", "dog", "person"]
+    return ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus',
+'car', 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse', 'motorbike',
+'person', 'pottedplant', 'sheep', 'sofa', 'train', 'tv']
 
 # if __name__ == "__main__":
 #     img = cv2.imread("C:/Coding/Study/Tagged-object-removal/lama/000068.png")
