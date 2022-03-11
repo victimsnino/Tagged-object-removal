@@ -40,7 +40,7 @@ def predict_image():
     if (picture is None) or (mask is None):
         return "Error"
     prediction = predictor.predict(picture, mask)
-    _, prediction_encoded = cv2.imencode('.png', prediction)
+    _, prediction_encoded = cv2.imencode('.jpg', prediction)
     # prediction_encoded = picture_encoded.tostring()
     return send_file(
         io.BytesIO(prediction_encoded),

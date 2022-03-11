@@ -4,7 +4,7 @@ import time
 import numpy as np
 
 def __send_image(picture, task_id, img_type):
-    _, picture_encoded = cv2.imencode('.png', picture)
+    _, picture_encoded = cv2.imencode('.jpg', picture)
     picture_encoded = picture_encoded.tobytes()
     headers = {'TaskID' : task_id}
     response = requests.post(f'http://127.0.0.1:5000/send{img_type}', data=picture_encoded, headers = headers)
