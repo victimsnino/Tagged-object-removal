@@ -68,8 +68,8 @@ def process_image(list_of_tags, image):
         mask_image = mask_image.resize(pil_img.size)
         # convert to cv2 image
         mask = cv2.cvtColor(np.array(mask_image), cv2.COLOR_RGB2BGR)
-        cv2.imshow('image',mask)
-        cv2.waitKey(0)
+        cv2.imwrite("mask.jpg",mask)
+        return send_image_to_lama(image, mask)
 
     # temp solution to generate mask
     # mask = 0 * np.ones(shape=image.shape[:2], dtype=np.uint8)
@@ -78,16 +78,15 @@ def process_image(list_of_tags, image):
     #                     color=(255,255,255), 
     #                     thickness=-1)
 
-    # cv2.imwrite("mask.jpg",mask)
-    # return send_image_to_lama(image, mask)
+    
 
 # check how it works
 # init_model()
-# img = cv2.imread("IMG_URL")
+# img = cv2.imread("IMAGE_URL")
 # process_image(["person", "dog"], img)
 
 def get_list_of_tags():
-    return ["some_tag", "some_other_tag"]
+    return ["boat", "bus", "car", "cat", "dog", "person"]
 
 # if __name__ == "__main__":
 #     img = cv2.imread("C:/Coding/Study/Tagged-object-removal/lama/000068.png")
