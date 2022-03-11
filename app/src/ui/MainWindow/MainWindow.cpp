@@ -87,7 +87,7 @@ MainWindow::MainWindow(QWidget* parent)
                            {
                                QImageReader reader(path);
                                reader.setAutoTransform(true);
-                               return reader.read();
+                               return reader.read().scaled(1280, 720, Qt::KeepAspectRatio).copy();
                            })
                            .filter([](const QImage& img)
                            {
@@ -101,23 +101,27 @@ MainWindow::MainWindow(QWidget* parent)
         m_ui->save_result->setEnabled(false);
 
         m_pixmap_before = QPixmap::fromImage(img);
-        m_pixmap_after  = QPixmap();
+        m_pixmap_after  = m_pixmap_before;
 
         updateImages();
     });
 
     m_on_process_tags = rxqt::from_signal(m_ui->process_image, &QPushButton::clicked)
-            .map([&](const auto&)
-            {
-                std::vector<std::string> enabled_tags{};
-                for (const auto& c : m_ui->tags_scroll_content->findChildren<QCheckBox*>(QString(),
-                                                                                         Qt::FindDirectChildrenOnly))
-                {
-                    if (c->isChecked())
-                        enabled_tags.push_back(c->text().toStdString());
-                }
-                return enabled_tags;
-            });
+                        .tap([&](const auto&)
+                        {
+                            m_ui->image_after->setText("LOADING...");
+                        })
+                        .map([&](const auto&)
+                        {
+                            std::vector<std::string> enabled_tags{};
+                            for (const auto& c : m_ui->tags_scroll_content->findChildren<QCheckBox*>(QString(),
+                                                                                                     Qt::FindDirectChildrenOnly))
+                            {
+                                if (c->isChecked())
+                                    enabled_tags.push_back(c->text().toStdString());
+                            }
+                            return enabled_tags;
+                        });
 
     rxqt::from_event(m_ui->Center, QEvent::Resize).subscribe([&](const auto&)
     {
