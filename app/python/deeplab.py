@@ -75,4 +75,5 @@ def get_mask_for_image(model, list_of_tags, image):
   mask_image = Image.fromarray(transform_img)
   mask_image = mask_image.resize(pil_img.size)
   # convert to cv2 image
-  return cv2.cvtColor(np.array(mask_image), cv2.COLOR_RGB2BGR)
+  res = cv2.cvtColor(np.array(mask_image), cv2.COLOR_RGB2BGR)
+  return cv2.dilate(res, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (40, 40)))
